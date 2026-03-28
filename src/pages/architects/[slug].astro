@@ -1,0 +1,117 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { architects, getArchitectBySlug, getAllArchitectSlugs } from '../../lib/architects';
+import { getCoursesByArchitect } from '../../lib/data';
+import { buildBreadcrumbSchema, buildPersonSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return getAllArchitectSlugs().map(slug => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const architect = getArchitectBySlug(slug!);
+
+if (!architect) {
+  return Astro.redirect('/404');
+}
+
+// Get courses designed by this architect from the actual course data
+const courses = getCoursesByArchitect(architect.name);
+
+const breadcrumbs = [
+  { name: 'Architects', href: '/' },
+  { name: architect.name },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Architects', url: '/' },
+    { name: architect.name, url: `/architects/${slug}` },
+  ]),
+  buildPersonSchema({ name: architect.name, slug: architect.slug, bio: architect.bio }),
+  buildArticleSchema(
+    `${architect.name} — Golf Course Architect`,
+    architect.bio,
+    `/architects/${slug}`
+  ),
+  ...(architect.faqs.length > 0 ? [buildFAQSchema(architect.faqs)] : []),
+];
+
+// Get other architects for internal links
+const otherArchitects = architects
+  .filter(a => a.slug !== slug)
+  .slice(0, 8)
+  .map(a => ({ name: a.name, href: `/architects/${a.slug}` }));
+---
+
+<EditorialLayout
+  title={architect.metaTitle}
+  description={architect.metaDescription}
+  canonical={`/architects/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
+      {architect.name}
+    </h1>
+    <p class="text-lg text-muted-foreground">Golf Course Architect</p>
+  </header>
+
+  <!-- Bio -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Biography</h2>
+    <p>{architect.bio}</p>
+  </section>
+
+  <!-- Design Philosophy -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Design Philosophy</h2>
+    <p>{architect.philosophy}</p>
+  </section>
+
+  <!-- Notable Courses in Our Directory -->
+  {courses.length > 0 && (
+    <section class="mb-10">
+      <h2 class="text-2xl font-display font-bold text-foreground mb-6">
+        Courses by {architect.name} in Our Directory ({courses.length})
+      </h2>
+      <div class="grid gap-4">
+        {courses.map((course) => (
+          <a
+            href={`/golf-course/${course.slug}`}
+            class="surface-elevated p-5 rounded-lg hover:ring-2 hover:ring-gold/50 transition-all flex justify-between items-center"
+          >
+            <div>
+              <h3 class="font-semibold text-foreground">{course.name}</h3>
+              <p class="text-sm text-muted-foreground">{course.city}, {course.state} · {course.type} · Est. {course.yearBuilt}</p>
+            </div>
+            <div class="text-right">
+              <span class="badge-rank text-sm">{course.rating.toFixed(1)}</span>
+              <p class="text-xs text-muted-foreground mt-1">{course.greensFee}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- FAQ Section -->
+  {architect.faqs.length > 0 && (
+    <FAQSection faqs={architect.faqs} heading={`Frequently Asked Questions About ${architect.name}`} />
+  )}
+
+  <!-- Related Architects -->
+  <InternalLinks
+    heading="Explore More Golf Course Architects"
+    links={otherArchitects}
+  />
+
+  <!-- Newsletter -->
+  <NewsletterCTA />
+</EditorialLayout>

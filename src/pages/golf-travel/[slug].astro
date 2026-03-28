@@ -1,0 +1,113 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { travelDestinations, getTravelBySlug, getAllTravelSlugs } from '../../lib/travel';
+import { buildBreadcrumbSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return getAllTravelSlugs().map(slug => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const travel = getTravelBySlug(slug!);
+
+if (!travel) {
+  return Astro.redirect('/404');
+}
+
+const breadcrumbs = [
+  { name: 'Golf Travel', href: '/' },
+  { name: travel.destination },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Golf Travel', url: '/' },
+    { name: travel.destination, url: `/golf-travel/${slug}` },
+  ]),
+  buildArticleSchema(
+    travel.metaTitle,
+    travel.heroIntro,
+    `/golf-travel/${slug}`
+  ),
+  ...(travel.faqs.length > 0 ? [buildFAQSchema(travel.faqs)] : []),
+];
+
+// Build internal links: city guides + related travel destinations
+const internalLinks = [
+  ...travel.cities.map(c => ({ name: `Best Golf in ${c.name}`, href: `/best-golf-courses-in/${c.slug}` })),
+  ...travel.relatedDestinations.map(d => ({ name: d.name, href: `/golf-travel/${d.slug}` })),
+];
+---
+
+<EditorialLayout
+  title={travel.metaTitle}
+  description={travel.metaDescription}
+  canonical={`/golf-travel/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
+      {travel.destination} — Golf Travel Guide (2026)
+    </h1>
+    <p class="text-lg text-muted-foreground leading-relaxed">{travel.heroIntro}</p>
+  </header>
+
+  <!-- Overview -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Overview</h2>
+    <p>{travel.overview}</p>
+  </section>
+
+  <!-- Best Time to Visit -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Best Time to Visit</h2>
+    <p>{travel.bestTimeToVisit}</p>
+  </section>
+
+  <!-- Getting There -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Getting There</h2>
+    <p>{travel.gettingThere}</p>
+  </section>
+
+  <!-- Where to Stay -->
+  <section class="prose prose-lg max-w-none mb-10">
+    <h2 class="text-2xl font-display font-bold text-foreground">Where to Stay</h2>
+    <p>{travel.whereToStay}</p>
+  </section>
+
+  <!-- Top Courses -->
+  {travel.topCourses.length > 0 && (
+    <section class="mb-10">
+      <h2 class="text-2xl font-display font-bold text-foreground mb-6">
+        Top Courses to Play
+      </h2>
+      <div class="grid gap-6">
+        {travel.topCourses.map((course, i) => (
+          <CourseCard course={course} rank={i + 1} />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- FAQ Section -->
+  {travel.faqs.length > 0 && (
+    <FAQSection faqs={travel.faqs} heading={`${travel.destination} Golf Trip FAQ`} />
+  )}
+
+  <!-- Internal Links -->
+  <InternalLinks
+    heading="Explore More Destinations"
+    links={internalLinks}
+  />
+
+  <!-- Newsletter -->
+  <NewsletterCTA />
+</EditorialLayout>

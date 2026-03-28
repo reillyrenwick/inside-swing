@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 150 20% 12%;
+    --card: 40 25% 95%;
+    --card-foreground: 150 20% 12%;
+    --popover: 40 33% 97%;
+    --popover-foreground: 150 20% 12%;
+    --primary: 152 35% 22%;
+    --primary-foreground: 40 33% 97%;
+    --secondary: 40 20% 90%;
+    --secondary-foreground: 150 20% 12%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 150 8% 45%;
+    --accent: 42 65% 55%;
+    --accent-foreground: 150 20% 12%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 40 15% 85%;
+    --input: 40 15% 85%;
+    --ring: 152 35% 22%;
+    --radius: 0.375rem;
+    --surface-elevated: 0 0% 100%;
+    --gold: 42 65% 55%;
+    --gold-light: 42 55% 75%;
+    --green-deep: 152 40% 15%;
+    --green-medium: 152 30% 30%;
+    --cream: 40 33% 97%;
+    --cream-dark: 40 20% 90%;
+    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+    --shadow-editorial: 0 1px 3px hsl(150 20% 12% / 0.06), 0 4px 12px hsl(150 20% 12% / 0.04);
+    --shadow-card: 0 2px 8px hsl(150 20% 12% / 0.06), 0 8px 24px hsl(150 20% 12% / 0.04);
+    --shadow-elevated: 0 4px 16px hsl(150 20% 12% / 0.08), 0 12px 32px hsl(150 20% 12% / 0.06);
+  }
+
+  .dark {
+    --background: 150 20% 8%;
+    --foreground: 40 20% 92%;
+    --card: 150 18% 12%;
+    --card-foreground: 40 20% 92%;
+    --popover: 150 18% 12%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 42 65% 55%;
+    --primary-foreground: 150 20% 8%;
+    --secondary: 150 15% 18%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 150 12% 18%;
+    --muted-foreground: 40 10% 60%;
+    --accent: 42 65% 55%;
+    --accent-foreground: 150 20% 8%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 150 12% 20%;
+    --input: 150 12% 20%;
+    --ring: 42 65% 55%;
+    --surface-elevated: 150 15% 14%;
+    --green-deep: 152 30% 8%;
+    --green-medium: 152 25% 20%;
+    --cream: 40 10% 12%;
+    --cream-dark: 40 8% 16%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply text-foreground;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  .editorial-container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1200px;
+  }
+  .editorial-narrow {
+    @apply mx-auto px-4 sm:px-6;
+    max-width: 800px;
+  }
+  .editorial-divider {
+    @apply border-t border-border my-8;
+  }
+  .badge-rank {
+    @apply inline-flex items-center justify-center rounded-full font-semibold;
+    font-family: var(--font-display);
+    width: 2.5rem;
+    height: 2.5rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-size: 0.875rem;
+  }
+  .toc-link {
+    @apply block py-1.5 text-sm transition-colors;
+    color: hsl(var(--muted-foreground));
+  }
+  .toc-link:hover {
+    color: hsl(var(--foreground));
+  }
+  .hero-gradient {
+    background: linear-gradient(180deg, hsl(var(--green-deep)) 0%, hsl(var(--green-medium)) 100%);
+  }
+  .gold-accent {
+    color: hsl(var(--gold));
+  }
+  .surface-elevated {
+    background: hsl(var(--surface-elevated));
+    box-shadow: var(--shadow-card);
+  }
+}

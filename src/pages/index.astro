@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NewsletterCTA from '../components/content/NewsletterCTA.astro';
+import { getAllCities, getAllStates, getAllRankings } from '../lib/data';
+import { travelDestinations } from '../lib/travel';
+import { architects } from '../lib/architects';
+import { buildOrganizationSchema, buildWebsiteSchema } from '../lib/schema';
+import { SITE_NAME } from '../lib/config';
+
+const cities = getAllCities();
+const states = getAllStates();
+const rankings = getAllRankings();
+
+const jsonLd = [buildOrganizationSchema(), buildWebsiteSchema()];
+---
+
+<BaseLayout
+  title={`${SITE_NAME} | Golf Course Rankings, Destination Guides & Travel`}
+  description="Premium golf course rankings, city guides, destination reviews, and travel planning. Discover the best golf courses in America with expert analysis."
+  canonical="/"
+  jsonLd={jsonLd}
+>
+  <section class="hero-gradient py-16 md:py-24">
+    <div class="editorial-container text-center">
+      <h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-4">
+        <span class="gold-accent">The Inside</span> Swing
+      </h1>
+      <p class="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
+        Expert-curated golf course rankings, destination guides, and travel planning for the discerning golfer.
+      </p>
+    </div>
+  </section>
+
+  <div class="editorial-container py-12">
+    <section class="mb-16">
+      <h2 class="font-display text-2xl font-semibold mb-6">Rankings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {rankings.map((r) => (
+          <a href={`/rankings/${r.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+            <h3 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{r.title}</h3>
+            <p class="text-sm text-muted-foreground mt-2">View rankings &rarr;</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="font-display text-2xl font-semibold mb-6">City Golf Guides</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {cities.map((c) => (
+          <a href={`/best-golf-courses-in/${c.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {c.city}, {c.state}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="font-display text-2xl font-semibold mb-6">State Guides</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {states.map((s) => (
+          <a href={`/golf-in/${s.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {s.state}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="font-display text-2xl font-semibold mb-6">Golf Travel Guides</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {travelDestinations.map((t) => (
+          <a href={`/golf-travel/${t.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+            <h3 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{t.destination}</h3>
+            <p class="text-sm text-muted-foreground mt-2 line-clamp-2">{t.heroIntro.slice(0, 120)}...</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="font-display text-2xl font-semibold mb-6">Featured Architects</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {architects.slice(0, 12).map((a) => (
+          <a href={`/architects/${a.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {a.name}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <NewsletterCTA />
+  </div>
+</BaseLayout>

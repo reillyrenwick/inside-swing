@@ -1,0 +1,97 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getStateData, getAllStates } from '../../lib/data';
+import { buildBreadcrumbSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  const states = getAllStates();
+  return states.map(s => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+const state = getStateData(slug!);
+
+if (!state) {
+  return Astro.redirect('/404');
+}
+
+const breadcrumbs = [
+  { name: state.state },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: state.state, url: `/golf-in/${slug}` },
+  ]),
+  buildArticleSchema(state.metaTitle, state.metaDescription, `/golf-in/${slug}`),
+  ...(state.faqs.length > 0 ? [buildFAQSchema(state.faqs)] : []),
+];
+---
+
+<EditorialLayout
+  title={state.metaTitle}
+  description={state.metaDescription}
+  canonical={`/golf-in/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">
+    Golf in {state.state}: Complete Guide
+  </h1>
+
+  <p class="text-lg text-foreground/80 leading-relaxed mb-8">{state.heroIntro}</p>
+
+  <section class="mt-8">
+    <h2 class="font-display text-2xl font-semibold mb-3">Overview</h2>
+    <p class="text-foreground/80 leading-relaxed">{state.overview}</p>
+  </section>
+
+  {state.topCities.length > 0 && (
+    <section class="mt-10">
+      <h2 class="font-display text-2xl font-semibold mb-4">Top Golf Cities in {state.state}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {state.topCities.map((city) => (
+          <a href={`/best-golf-courses-in/${city.slug}`} class="surface-elevated rounded-lg p-5 hover:ring-2 hover:ring-primary/20 transition-all group">
+            <h3 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{city.name}</h3>
+            <p class="text-sm text-muted-foreground mt-1">Best golf courses in {city.name} &rarr;</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {state.golfRegions.length > 0 && (
+    <section class="mt-10">
+      <h2 class="font-display text-2xl font-semibold mb-4">Golf Regions</h2>
+      <div class="space-y-4">
+        {state.golfRegions.map((region) => (
+          <div class="surface-elevated rounded-lg p-5">
+            <h3 class="font-display text-lg font-semibold mb-2">{region.name}</h3>
+            <p class="text-foreground/80">{region.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Best Time to Play</h2>
+    <p class="text-foreground/80 leading-relaxed">{state.bestTimeToPlay}</p>
+  </section>
+
+  <FAQSection faqs={state.faqs} />
+
+  {state.relatedStates.length > 0 && (
+    <InternalLinks
+      title="Explore Nearby States"
+      links={state.relatedStates.map(s => ({ name: `Golf in ${s.name}`, slug: s.slug, prefix: '/golf-in/' }))}
+    />
+  )}
+
+  <NewsletterCTA />
+</EditorialLayout>

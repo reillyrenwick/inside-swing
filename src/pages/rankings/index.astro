@@ -1,0 +1,61 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getAllRankings, rankings } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema';
+import { SITE_NAME } from '../../lib/config';
+
+const allRankings = getAllRankings();
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Golf Course Rankings' },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Golf Course Rankings', url: '/rankings' },
+  ]),
+  buildItemListSchema(
+    'Golf Course Rankings',
+    allRankings.map((r, i) => ({
+      name: r.title,
+      position: i + 1,
+      url: `/rankings/${r.slug}`,
+    }))
+  ),
+];
+---
+
+<EditorialLayout
+  title={`Golf Course Rankings | ${SITE_NAME}`}
+  description="Expert-curated golf course rankings for America's best courses. Public, private, and resort rankings updated annually by our editorial team."
+  canonical="/rankings"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">Golf Course Rankings</h1>
+    <p class="text-lg text-muted-foreground max-w-3xl">
+      Our definitive rankings of America's finest golf courses, evaluated by design quality, conditioning, challenge, and overall experience.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {allRankings.map((r) => {
+      const data = rankings[r.slug];
+      return (
+        <a href={`/rankings/${r.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+          <h2 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{r.title}</h2>
+          {data?.intro && (
+            <p class="text-sm text-muted-foreground mt-2 line-clamp-3">{data.intro.slice(0, 150)}...</p>
+          )}
+          <p class="text-sm font-medium text-primary mt-3">View rankings &rarr;</p>
+        </a>
+      );
+    })}
+  </div>
+
+  <NewsletterCTA />
+</EditorialLayout>

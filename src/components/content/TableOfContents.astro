@@ -1,0 +1,20 @@
+---
+interface Props {
+  items: { id: string; name: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav aria-label="Table of contents" class="surface-elevated rounded-lg p-5 mb-8">
+  <h2 class="font-display text-lg font-semibold mb-3">Jump to Course</h2>
+  <ol class="space-y-1">
+    {items.map((item, i) => (
+      <li>
+        <a href={`#course-${i + 1}`} class="toc-link">
+          <span class="font-semibold text-primary mr-2">{i + 1}.</span> {item.name}
+        </a>
+      </li>
+    ))}
+  </ol>
+</nav>

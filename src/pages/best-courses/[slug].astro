@@ -1,0 +1,115 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getStateTypeCombos, getCoursesByStateAndType, getAllCourseStates } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return getStateTypeCombos().map(c => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const combo = getStateTypeCombos().find(c => c.slug === slug);
+if (!combo) return Astro.redirect('/404');
+
+const courses = getCoursesByStateAndType(combo.state, combo.type);
+const stateSlug = combo.state.toLowerCase().replace(/\s+/g, '-');
+
+const typeLabel = combo.type === 'public' ? 'Public' : combo.type === 'private' ? 'Private' : combo.type === 'resort' ? 'Resort' : 'Semi-Private';
+const typeDesc = combo.type === 'public' ? 'public and daily-fee' : combo.type === 'private' ? 'private and members-only' : combo.type === 'resort' ? 'resort and destination' : 'semi-private';
+
+const title = `Best ${typeLabel} Golf Courses in ${combo.state} (2026)`;
+const description = `Discover the top ${typeDesc} golf courses in ${combo.state} for 2026. Ranked by our editorial team with green fees, architect info, and insider tips.`;
+
+const faqs = [
+  { question: `How many ${typeDesc} golf courses are in ${combo.state}?`, answer: `We've identified ${courses.length} top-rated ${typeDesc} courses in ${combo.state}. The state has many more total courses, but these represent the best options for visiting golfers.` },
+  { question: `What is the best ${typeDesc} course in ${combo.state}?`, answer: `${courses[0].name} (${courses[0].architect}, ${courses[0].yearBuilt}) is our top-ranked ${typeDesc} course in ${combo.state} with a ${courses[0].rating} rating.` },
+];
+
+if (combo.type === 'public' || combo.type === 'resort') {
+  const cheapest = courses.filter(c => c.greensFee !== 'Members Only').sort((a, b) => {
+    const aFee = parseInt(a.greensFee.replace(/[^0-9]/g, '')) || 999;
+    const bFee = parseInt(b.greensFee.replace(/[^0-9]/g, '')) || 999;
+    return aFee - bFee;
+  })[0];
+  if (cheapest) {
+    faqs.push({ question: `What is the best value ${typeDesc} course in ${combo.state}?`, answer: `${cheapest.name} at ${cheapest.greensFee} offers excellent value. It's an ${cheapest.architect} design built in ${cheapest.yearBuilt}.` });
+  }
+}
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: combo.state, url: `/golf-in/${stateSlug}` },
+    { name: `Best ${typeLabel} Courses` },
+  ]),
+  buildItemListSchema(title, courses.map((c, i) => ({
+    name: c.name,
+    position: i + 1,
+    url: `/golf-course/${c.slug}`,
+  }))),
+  buildArticleSchema(title, description, `/best-courses/${slug}`),
+  buildFAQSchema(faqs),
+];
+
+const otherTypes = getStateTypeCombos()
+  .filter(c => c.state === combo.state && c.type !== combo.type)
+  .map(c => ({ name: `Best ${c.type === 'public' ? 'Public' : c.type === 'private' ? 'Private' : 'Resort'} Courses in ${c.state}`, slug: c.slug }));
+---
+
+<EditorialLayout title={title} description={description} jsonLd={jsonLd}>
+  <nav class="text-sm text-muted-foreground mb-6">
+    <a href="/" class="hover:text-foreground">Home</a>
+    <span class="mx-2">/</span>
+    <a href={`/golf-in/${stateSlug}`} class="hover:text-foreground">{combo.state}</a>
+    <span class="mx-2">/</span>
+    <span>Best {typeLabel} Courses</span>
+  </nav>
+
+  <header class="mb-10">
+    <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4">
+      Best {typeLabel} Golf Courses in {combo.state}
+    </h1>
+    <p class="text-xl text-muted-foreground max-w-3xl">
+      The top {courses.length} {typeDesc} golf courses in {combo.state}, ranked by our editorial team for 2026.
+    </p>
+  </header>
+
+  <section class="mb-12">
+    <div class="space-y-8">
+      {courses.map((course, i) => (
+        <div class="flex gap-4 items-start">
+          <div class="flex-shrink-0 w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center font-display font-bold text-lg">
+            {i + 1}
+          </div>
+          <div class="flex-1">
+            <CourseCard course={course} />
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {otherTypes.length > 0 && (
+    <section class="mb-12">
+      <h2 class="font-display text-2xl font-semibold mb-4">More {combo.state} Golf</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href={`/golf-in/${stateSlug}`} class="px-4 py-2 bg-muted rounded-full text-sm font-medium hover:bg-muted/80 transition-colors">
+          All {combo.state} Courses
+        </a>
+        {otherTypes.map(t => (
+          <a href={`/best-courses/${t.slug}`} class="px-4 py-2 bg-muted rounded-full text-sm font-medium hover:bg-muted/80 transition-colors">
+            {t.name}
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <FAQSection faqs={faqs} />
+
+  <NewsletterCTA />
+</EditorialLayout>

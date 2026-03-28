@@ -1,0 +1,61 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getAllCities, cityMeta } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema';
+import { SITE_NAME } from '../../lib/config';
+
+const cities = getAllCities();
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'City Golf Guides' },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'City Golf Guides', url: '/best-golf-courses-in' },
+  ]),
+  buildItemListSchema(
+    'City Golf Guides',
+    cities.map((c, i) => ({
+      name: `${c.city}, ${c.state}`,
+      position: i + 1,
+      url: `/best-golf-courses-in/${c.slug}`,
+    }))
+  ),
+];
+---
+
+<EditorialLayout
+  title={`City Golf Guides | ${SITE_NAME}`}
+  description="Find the best golf courses in cities across America. Expert city guides with course rankings, green fees, travel tips, and local recommendations."
+  canonical="/best-golf-courses-in"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">City Golf Guides</h1>
+    <p class="text-lg text-muted-foreground max-w-3xl">
+      Expert guides to the best golf courses in cities across America. Course rankings, green fees, and insider tips for every destination.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {cities.map((c) => {
+      const data = cityMeta[c.slug];
+      return (
+        <a href={`/best-golf-courses-in/${c.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+          <h2 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{c.city}, {c.state}</h2>
+          {data?.heroIntro && (
+            <p class="text-sm text-muted-foreground mt-2 line-clamp-3">{data.heroIntro.slice(0, 150)}...</p>
+          )}
+          <p class="text-sm font-medium text-primary mt-3">View guide &rarr;</p>
+        </a>
+      );
+    })}
+  </div>
+
+  <NewsletterCTA />
+</EditorialLayout>

@@ -1,0 +1,221 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getAllCourses, getCourseBySlug, getCoursesByCity, getAllCities } from '../../lib/data';
+import { buildBreadcrumbSchema, buildLocalBusinessSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  const courses = getAllCourses();
+  return courses.map(c => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const course = getCourseBySlug(slug!);
+
+if (!course) {
+  return Astro.redirect('/404');
+}
+
+const citySlug = `${course.city.toLowerCase().replace(/\s+/g, '-')}-${course.state.toLowerCase().replace(/\s+/g, '-')}`;
+const stateSlug = course.state.toLowerCase().replace(/\s+/g, '-');
+
+// Get related courses from the same city (excluding current)
+const cityCourses = getCoursesByCity(citySlug).filter(c => c.slug !== course.slug).slice(0, 5);
+
+const breadcrumbs = [
+  { name: course.state, href: `/golf-in/${stateSlug}` },
+  { name: course.city, href: `/best-golf-courses-in/${citySlug}` },
+  { name: course.name },
+];
+
+const jsonLd: Record<string, unknown>[] = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: course.state, url: `/golf-in/${stateSlug}` },
+    { name: course.city, url: `/best-golf-courses-in/${citySlug}` },
+    { name: course.name, url: `/golf-course/${slug}` },
+  ]),
+  buildLocalBusinessSchema(course),
+  buildArticleSchema(
+    `${course.name} - Golf Course Review`,
+    course.description,
+    `/golf-course/${slug}`
+  ),
+];
+
+if (course.faqs && course.faqs.length > 0) {
+  jsonLd.push(buildFAQSchema(course.faqs));
+}
+
+const typeLabel: Record<string, string> = {
+  public: 'Public Course',
+  private: 'Private Club',
+  resort: 'Resort Course',
+  'semi-private': 'Semi-Private',
+};
+---
+
+<EditorialLayout
+  title={`${course.name} | ${course.city}, ${course.state} Golf Course`}
+  description={course.description}
+  canonical={`/golf-course/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+    <div class="lg:col-span-2">
+      <h1 class="font-display text-3xl md:text-4xl font-bold mb-2">{course.name}</h1>
+      <p class="text-muted-foreground mb-6">{course.city}, {course.state}</p>
+
+      <div class="prose max-w-none">
+        <p class="text-lg text-foreground/90 leading-relaxed mb-6">{course.description}</p>
+      </div>
+
+      {course.history && (
+        <section class="mt-10">
+          <h2 class="font-display text-2xl font-semibold mb-4">History & Heritage</h2>
+          <div class="prose max-w-none text-foreground/85 leading-relaxed space-y-4">
+            {course.history.split('\n\n').map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {course.signatureHoles && course.signatureHoles.length > 0 && (
+        <section class="mt-10">
+          <h2 class="font-display text-2xl font-semibold mb-6">Signature Holes</h2>
+          <div class="space-y-6">
+            {course.signatureHoles.map((h) => (
+              <div class="surface-elevated rounded-lg p-5">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="inline-flex items-center justify-center w-10 h-10 bg-primary/10 text-primary rounded-full font-display font-bold text-lg">
+                    {h.hole}
+                  </span>
+                  <div>
+                    <span class="font-semibold text-foreground">Hole {h.hole}</span>
+                    <span class="text-muted-foreground text-sm ml-2">Par {h.par} &middot; {h.yardage.toLocaleString()} yards</span>
+                  </div>
+                </div>
+                <p class="text-foreground/80 leading-relaxed">{h.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {course.whatToExpect && (
+        <section class="mt-10">
+          <h2 class="font-display text-2xl font-semibold mb-4">What to Expect</h2>
+          <div class="prose max-w-none text-foreground/85 leading-relaxed space-y-4">
+            {course.whatToExpect.split('\n\n').map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {course.playingTips && (
+        <section class="mt-10">
+          <h2 class="font-display text-2xl font-semibold mb-4">Playing Tips</h2>
+          <div class="prose max-w-none text-foreground/85 leading-relaxed space-y-4">
+            {course.playingTips.split('\n\n').map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section class="mt-8">
+        <h2 class="font-display text-2xl font-semibold mb-4">Highlights</h2>
+        <ul class="space-y-2">
+          {course.highlights.map((h) => (
+            <li class="flex items-start gap-2 text-foreground/80">
+              <span class="text-primary mt-1 flex-shrink-0">&#10003;</span>
+              {h}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {course.faqs && course.faqs.length > 0 && (
+        <section class="mt-10">
+          <FAQSection faqs={course.faqs} />
+        </section>
+      )}
+
+      {cityCourses.length > 0 && (
+        <section class="mt-10">
+          <h2 class="font-display text-2xl font-semibold mb-4">More Courses in {course.city}</h2>
+          <div class="space-y-3">
+            {cityCourses.map((c) => (
+              <a href={`/golf-course/${c.slug}`} class="block surface-elevated rounded-lg p-4 hover:ring-2 hover:ring-primary/20 transition-all">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="font-semibold text-foreground">{c.name}</span>
+                    <span class="text-sm text-muted-foreground ml-2">{c.type}</span>
+                  </div>
+                  <span class="text-sm text-primary font-medium">{c.greensFee}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <InternalLinks
+        title="Explore This Destination"
+        links={[
+          { name: `All courses in ${course.city}`, slug: citySlug, prefix: '/best-golf-courses-in/' },
+          { name: `Public courses in ${course.city}`, slug: citySlug, prefix: '/best-public-golf-courses-in/' },
+          { name: `Golf in ${course.state}`, slug: stateSlug, prefix: '/golf-in/' },
+        ]}
+      />
+
+      <NewsletterCTA />
+    </div>
+
+    <aside class="mt-8 lg:mt-0">
+      <div class="surface-elevated rounded-lg p-6 sticky top-20">
+        <h2 class="font-display text-lg font-semibold mb-4">Course Details</h2>
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Type</dt>
+            <dd class="font-medium">{typeLabel[course.type]}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Green Fee</dt>
+            <dd class="font-medium text-primary">{course.greensFee}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Rating</dt>
+            <dd class="font-medium">{course.rating} / 5</dd>
+          </div>
+          <div class="border-t border-border pt-3 flex justify-between">
+            <dt class="text-muted-foreground">Architect</dt>
+            <dd class="font-medium">{course.architect}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Year Built</dt>
+            <dd class="font-medium">{course.yearBuilt}</dd>
+          </div>
+          <div class="border-t border-border pt-3 flex justify-between">
+            <dt class="text-muted-foreground">Holes</dt>
+            <dd class="font-medium">{course.holes}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Par</dt>
+            <dd class="font-medium">{course.par}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted-foreground">Yardage</dt>
+            <dd class="font-medium">{course.yardage.toLocaleString()}</dd>
+          </div>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</EditorialLayout>

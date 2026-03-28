@@ -1,0 +1,54 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { travelDestinations } from '../../lib/travel';
+import { buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema';
+import { SITE_NAME } from '../../lib/config';
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Golf Travel Guides' },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Golf Travel Guides', url: '/golf-travel' },
+  ]),
+  buildItemListSchema(
+    'Golf Travel Destinations',
+    travelDestinations.map((t, i) => ({
+      name: t.destination,
+      position: i + 1,
+      url: `/golf-travel/${t.slug}`,
+    }))
+  ),
+];
+---
+
+<EditorialLayout
+  title={`Golf Travel Guides | ${SITE_NAME}`}
+  description="Plan your next golf trip with expert destination guides. Course recommendations, where to stay, best times to visit, and insider tips for top golf destinations."
+  canonical="/golf-travel"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">Golf Travel Guides</h1>
+    <p class="text-lg text-muted-foreground max-w-3xl">
+      Expert destination guides for the discerning golf traveler. Course recommendations, where to stay, and insider tips for America's top golf destinations.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {travelDestinations.map((t) => (
+      <a href={`/golf-travel/${t.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+        <h2 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{t.destination}</h2>
+        <p class="text-sm text-muted-foreground mt-2 line-clamp-3">{t.heroIntro.slice(0, 150)}...</p>
+        <p class="text-sm font-medium text-primary mt-3">Read guide &rarr;</p>
+      </a>
+    ))}
+  </div>
+
+  <NewsletterCTA />
+</EditorialLayout>

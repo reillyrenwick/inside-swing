@@ -1,0 +1,106 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { monthlyGuides, getCoursesByState, getAllCourses } from '../../lib/data';
+import { buildBreadcrumbSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return monthlyGuides.map(m => ({ params: { slug: m.slug } }));
+}
+
+const { slug } = Astro.params;
+const guide = monthlyGuides.find(m => m.slug === slug);
+if (!guide) return Astro.redirect('/404');
+
+const allCourses = getAllCourses();
+const recommendedCourses = guide.bestStates
+  .flatMap(state => getCoursesByState(state))
+  .filter(c => c.type !== 'private')
+  .sort((a, b) => b.rating - a.rating)
+  .slice(0, 20);
+
+const faqs = [
+  { question: `What are the best golf destinations in ${guide.month}?`, answer: `The best states for golf in ${guide.month} are ${guide.bestStates.join(', ')}. These destinations offer ideal weather and course conditions during this time of year.` },
+  { question: `Where should I avoid playing golf in ${guide.month}?`, answer: guide.avoid.length > 0 ? `${guide.avoid.join(', ')} typically have poor golf conditions in ${guide.month} due to weather. Many courses in these areas may be closed or in poor condition.` : `${guide.month} is a great month for golf nearly everywhere in the United States.` },
+  { question: `Is ${guide.month} peak season or off-season for golf?`, answer: guide.bestStates.includes('Arizona') ? `${guide.month} is peak season for warm-weather destinations like Arizona and Florida, meaning higher green fees but perfect conditions. Northern destinations are typically in their off-season.` : `${guide.month} is a transitional month. Northern courses are in season with good conditions, while desert destinations may be in their off-season with lower prices.` },
+];
+
+const title = `Best Golf Destinations for ${guide.month} (2026)`;
+const description = `Discover the best places to play golf in ${guide.month}. Top courses, ideal destinations, weather tips, and trip planning for ${guide.month} golf vacations.`;
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Monthly Golf Guides', url: '/best-golf-in/january' },
+    { name: `${guide.month} Golf Guide` },
+  ]),
+  buildArticleSchema(title, description, `/best-golf-in/${slug}`),
+  buildFAQSchema(faqs),
+];
+---
+
+<EditorialLayout title={title} description={description} jsonLd={jsonLd}>
+  <nav class="text-sm text-muted-foreground mb-6">
+    <a href="/" class="hover:text-foreground">Home</a>
+    <span class="mx-2">/</span>
+    <span>Best Golf in {guide.month}</span>
+  </nav>
+
+  <header class="mb-10">
+    <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4">
+      Best Golf Destinations for {guide.month}
+    </h1>
+    <p class="text-xl text-muted-foreground max-w-3xl">{guide.description}</p>
+  </header>
+
+  <section class="mb-12">
+    <h2 class="font-display text-2xl font-semibold mb-4">Top States for {guide.month} Golf</h2>
+    <div class="flex flex-wrap gap-3 mb-6">
+      {guide.bestStates.map(state => {
+        const stateSlug = state.toLowerCase().replace(/\s+/g, '-');
+        return (
+          <a href={`/golf-in/${stateSlug}`} class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors">
+            {state}
+          </a>
+        );
+      })}
+    </div>
+    {guide.avoid.length > 0 && (
+      <div class="bg-muted/50 border border-border rounded-lg p-4">
+        <p class="text-sm text-muted-foreground">
+          <strong>Consider avoiding:</strong> {guide.avoid.join(', ')} — courses may be closed or in poor condition in {guide.month}.
+        </p>
+      </div>
+    )}
+  </section>
+
+  <section class="mb-12">
+    <h2 class="font-display text-2xl font-semibold mb-6">Top Accessible Courses for {guide.month}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {recommendedCourses.map(course => (
+        <CourseCard course={course} />
+      ))}
+    </div>
+  </section>
+
+  <section class="mb-12">
+    <h2 class="font-display text-2xl font-semibold mb-4">Browse by Month</h2>
+    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      {monthlyGuides.map(m => (
+        <a
+          href={`/best-golf-in/${m.slug}`}
+          class={`px-4 py-3 rounded-lg text-center text-sm font-medium transition-colors ${m.slug === slug ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+        >
+          {m.month}
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <FAQSection faqs={faqs} />
+
+  <NewsletterCTA />
+</EditorialLayout>

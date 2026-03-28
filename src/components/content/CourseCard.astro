@@ -1,0 +1,51 @@
+---
+import type { GolfCourse } from '../../lib/types';
+
+interface Props {
+  course: GolfCourse;
+  rank: number;
+  showLink?: boolean;
+}
+
+const { course, rank, showLink = true } = Astro.props;
+
+const typeClasses: Record<string, string> = {
+  public: 'bg-primary/10 text-primary',
+  private: 'bg-accent/20 text-accent-foreground',
+  resort: 'bg-gold/20 text-foreground',
+  'semi-private': 'bg-muted text-muted-foreground',
+};
+---
+
+<article id={`course-${rank}`} class="surface-elevated rounded-lg p-6 mb-6">
+  <div class="flex items-start gap-4">
+    <span class="badge-rank flex-shrink-0">{rank}</span>
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center gap-2 mb-1">
+        {showLink ? (
+          <a href={`/golf-course/${course.slug}`} class="font-display text-xl font-semibold text-foreground hover:text-primary transition-colors">
+            {course.name}
+          </a>
+        ) : (
+          <h3 class="font-display text-xl font-semibold text-foreground">{course.name}</h3>
+        )}
+        <span class={`inline-block px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wide ${typeClasses[course.type] || typeClasses['semi-private']}`}>
+          {course.type}
+        </span>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">
+        {course.city}, {course.state} &middot; {course.architect} ({course.yearBuilt}) &middot; {course.holes} holes &middot; Par {course.par} &middot; {course.yardage.toLocaleString()} yards
+      </p>
+      <p class="text-foreground/90 leading-relaxed mb-3">{course.description}</p>
+      <div class="flex flex-wrap gap-2 mb-3">
+        {course.highlights.map((h) => (
+          <span class="text-xs bg-muted px-2.5 py-1 rounded-full text-muted-foreground">{h}</span>
+        ))}
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <span class="font-semibold text-primary">Green Fee: {course.greensFee}</span>
+        <span class="text-muted-foreground">Rating: {course.rating}/5</span>
+      </div>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,96 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getStateTypeCombos } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema';
+import { SITE_NAME } from '../../lib/config';
+
+const combos = getStateTypeCombos();
+
+const publicCombos = combos.filter(c => c.type === 'public');
+const privateCombos = combos.filter(c => c.type === 'private');
+const resortCombos = combos.filter(c => c.type === 'resort');
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Best Courses by State & Type' },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Best Courses by State & Type', url: '/best-courses' },
+  ]),
+  buildItemListSchema(
+    'Best Courses by State & Type',
+    combos.map((c, i) => {
+      const typeLabel = c.type === 'public' ? 'Public' : c.type === 'private' ? 'Private' : 'Resort';
+      return {
+        name: `Best ${typeLabel} Courses in ${c.state}`,
+        position: i + 1,
+        url: `/best-courses/${c.slug}`,
+      };
+    })
+  ),
+];
+
+function typeLabel(type: string): string {
+  return type === 'public' ? 'Public' : type === 'private' ? 'Private' : 'Resort';
+}
+---
+
+<EditorialLayout
+  title={`Best Courses by State & Type | ${SITE_NAME}`}
+  description="Find the best public, private, and resort golf courses in every state. Browse by course type and state to discover top-rated courses near you."
+  canonical="/best-courses"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">Best Courses by State & Type</h1>
+    <p class="text-lg text-muted-foreground max-w-3xl">
+      Browse the best public, private, and resort golf courses organized by state. Find top-rated courses wherever you play.
+    </p>
+  </header>
+
+  {publicCombos.length > 0 && (
+    <section class="mb-12">
+      <h2 class="font-display text-2xl font-semibold mb-6">Best Public Courses</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {publicCombos.map((c) => (
+          <a href={`/best-courses/${c.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {c.state} ({c.count})
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {privateCombos.length > 0 && (
+    <section class="mb-12">
+      <h2 class="font-display text-2xl font-semibold mb-6">Best Private Courses</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {privateCombos.map((c) => (
+          <a href={`/best-courses/${c.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {c.state} ({c.count})
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {resortCombos.length > 0 && (
+    <section class="mb-12">
+      <h2 class="font-display text-2xl font-semibold mb-6">Best Resort Courses</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {resortCombos.map((c) => (
+          <a href={`/best-courses/${c.slug}`} class="px-4 py-3 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium text-center">
+            {c.state} ({c.count})
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <NewsletterCTA />
+</EditorialLayout>

@@ -1,0 +1,112 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import TableOfContents from '../../components/content/TableOfContents.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getCityData, getAllCities } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  const cities = getAllCities();
+  return cities.map(c => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const city = getCityData(slug!);
+
+if (!city) {
+  return Astro.redirect('/404');
+}
+
+const breadcrumbs = [
+  { name: city.state, href: `/golf-in/${city.relatedStates[0] || city.state.toLowerCase().replace(/\s+/g, '-')}` },
+  { name: `${city.city}, ${city.stateAbbr}` },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: city.state, url: `/golf-in/${city.relatedStates[0] || city.state.toLowerCase().replace(/\s+/g, '-')}` },
+    { name: `${city.city}, ${city.stateAbbr}`, url: `/best-golf-courses-in/${slug}` },
+  ]),
+  buildItemListSchema(
+    `Best Golf Courses in ${city.city}, ${city.state}`,
+    city.courses.map((c, i) => ({ name: c.name, position: i + 1, url: `/golf-course/${c.slug}` }))
+  ),
+  buildArticleSchema(city.metaTitle, city.metaDescription, `/best-golf-courses-in/${slug}`),
+  ...(city.faqs.length > 0 ? [buildFAQSchema(city.faqs)] : []),
+];
+---
+
+<EditorialLayout
+  title={city.metaTitle}
+  description={city.metaDescription}
+  canonical={`/best-golf-courses-in/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">
+    Best Golf Courses in {city.city}, {city.state}
+  </h1>
+
+  <p class="text-lg text-foreground/80 leading-relaxed mb-6">{city.heroIntro}</p>
+
+  <div class="surface-elevated rounded-lg p-4 mb-8 text-sm text-muted-foreground">
+    <strong class="text-foreground">Our Methodology:</strong> Courses are ranked by an expert panel evaluating design quality, conditioning, challenge, aesthetics, and overall experience. Both private and public courses are considered on merit.
+  </div>
+
+  <TableOfContents items={city.courses.map(c => ({ id: c.slug, name: c.name }))} />
+
+  <section aria-label="Ranked golf courses">
+    {city.courses.map((course, i) => (
+      <CourseCard course={course} rank={i + 1} />
+    ))}
+  </section>
+
+  {city.publicCourses.length > 0 && (
+    <section class="mt-10">
+      <h2 class="font-display text-2xl font-semibold mb-3">Public Courses in {city.city}</h2>
+      <p class="text-foreground/80 mb-4">
+        Looking for courses you can play without a membership?
+        <a href={`/best-public-golf-courses-in/${slug}`} class="text-primary font-medium hover:underline">
+          See our complete guide to public courses in {city.city}
+        </a>.
+      </p>
+    </section>
+  )}
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Overview</h2>
+    <p class="text-foreground/80 leading-relaxed">{city.overview}</p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Best Time to Play</h2>
+    <p class="text-foreground/80 leading-relaxed">{city.bestTimeToPlay}</p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Travel Tips & Getting There</h2>
+    <p class="text-foreground/80 leading-relaxed mb-2">{city.travelTips}</p>
+    <p class="text-sm text-muted-foreground"><strong>Nearest Airport:</strong> {city.airport}</p>
+  </section>
+
+  <FAQSection faqs={city.faqs} />
+
+  <InternalLinks
+    title={`Explore Nearby Golf Destinations`}
+    links={city.nearbyDestinations}
+  />
+
+  {city.relatedStates.length > 0 && (
+    <InternalLinks
+      title="State Golf Guides"
+      links={city.relatedStates.map(s => ({ name: `Golf in ${s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')}`, slug: s, prefix: '/golf-in/' }))}
+    />
+  )}
+
+  <NewsletterCTA />
+</EditorialLayout>

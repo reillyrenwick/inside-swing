@@ -1,0 +1,61 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getAllStates, stateData } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema } from '../../lib/schema';
+import { SITE_NAME } from '../../lib/config';
+
+const states = getAllStates();
+
+const breadcrumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Golf by State' },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Golf by State', url: '/golf-in' },
+  ]),
+  buildItemListSchema(
+    'Golf by State',
+    states.map((s, i) => ({
+      name: s.state,
+      position: i + 1,
+      url: `/golf-in/${s.slug}`,
+    }))
+  ),
+];
+---
+
+<EditorialLayout
+  title={`Golf by State | ${SITE_NAME}`}
+  description="Explore golf courses across every state. State-by-state guides with top courses, best regions, travel tips, and seasonal recommendations."
+  canonical="/golf-in"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <header class="mb-10">
+    <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">Golf by State</h1>
+    <p class="text-lg text-muted-foreground max-w-3xl">
+      State-by-state guides to the best golf in America. Top courses, regional highlights, and travel tips for every corner of the country.
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {states.map((s) => {
+      const data = stateData[s.slug];
+      return (
+        <a href={`/golf-in/${s.slug}`} class="surface-elevated rounded-lg p-6 hover:ring-2 hover:ring-primary/20 transition-all group">
+          <h2 class="font-display text-lg font-semibold group-hover:text-primary transition-colors">{s.state}</h2>
+          {data?.heroIntro && (
+            <p class="text-sm text-muted-foreground mt-2 line-clamp-3">{data.heroIntro.slice(0, 150)}...</p>
+          )}
+          <p class="text-sm font-medium text-primary mt-3">Explore courses &rarr;</p>
+        </a>
+      );
+    })}
+  </div>
+
+  <NewsletterCTA />
+</EditorialLayout>

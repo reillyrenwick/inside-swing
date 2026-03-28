@@ -1,0 +1,59 @@
+---
+import { getAllCities, getAllStates, getAllRankings } from '../../lib/data';
+import { travelDestinations } from '../../lib/travel';
+import { architects } from '../../lib/architects';
+import { SITE_NAME } from '../../lib/config';
+
+const cities = getAllCities();
+const states = getAllStates();
+const rankings = getAllRankings();
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="border-t border-border mt-16 pt-12 pb-8 bg-muted/30">
+  <div class="editorial-container">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+      <div>
+        <h3 class="font-display text-lg font-semibold mb-4">Rankings</h3>
+        <ul class="space-y-2 text-sm">
+          {rankings.map((r) => (
+            <li><a href={`/rankings/${r.slug}`} class="text-muted-foreground hover:text-foreground transition-colors">{r.title}</a></li>
+          ))}
+        </ul>
+        <h3 class="font-display text-lg font-semibold mb-4 mt-6">Golf Travel</h3>
+        <ul class="space-y-2 text-sm">
+          {travelDestinations.map((t) => (
+            <li><a href={`/golf-travel/${t.slug}`} class="text-muted-foreground hover:text-foreground transition-colors">{t.destination}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-display text-lg font-semibold mb-4">City Guides</h3>
+        <ul class="space-y-2 text-sm">
+          {cities.map((c) => (
+            <li><a href={`/best-golf-courses-in/${c.slug}`} class="text-muted-foreground hover:text-foreground transition-colors">{c.city}, {c.state}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-display text-lg font-semibold mb-4">State Guides</h3>
+        <ul class="space-y-2 text-sm">
+          {states.map((s) => (
+            <li><a href={`/golf-in/${s.slug}`} class="text-muted-foreground hover:text-foreground transition-colors">{s.state}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-display text-lg font-semibold mb-4">Architects</h3>
+        <ul class="space-y-2 text-sm">
+          {architects.slice(0, 12).map((a) => (
+            <li><a href={`/architects/${a.slug}`} class="text-muted-foreground hover:text-foreground transition-colors">{a.name}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-border pt-6 text-center text-sm text-muted-foreground">
+      <p>&copy; {currentYear} {SITE_NAME}. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

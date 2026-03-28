@@ -1,0 +1,80 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import TableOfContents from '../../components/content/TableOfContents.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getRankingData, getAllRankings } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  const rankings = getAllRankings();
+  return rankings.map(r => ({ params: { slug: r.slug } }));
+}
+
+const { slug } = Astro.params;
+const ranking = getRankingData(slug!);
+
+if (!ranking) {
+  return Astro.redirect('/404');
+}
+
+const breadcrumbs = [
+  { name: 'Rankings', href: '/rankings/best-golf-courses-in-america' },
+  { name: ranking.title },
+];
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Rankings', url: '/rankings/best-golf-courses-in-america' },
+    { name: ranking.title, url: `/rankings/${slug}` },
+  ]),
+  buildItemListSchema(
+    ranking.title,
+    ranking.courses.map((c, i) => ({ name: c.name, position: i + 1, url: `/golf-course/${c.slug}` }))
+  ),
+  buildArticleSchema(ranking.metaTitle, ranking.metaDescription, `/rankings/${slug}`),
+  ...(ranking.faqs.length > 0 ? [buildFAQSchema(ranking.faqs)] : []),
+];
+---
+
+<EditorialLayout
+  title={ranking.metaTitle}
+  description={ranking.metaDescription}
+  canonical={`/rankings/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">{ranking.title}</h1>
+
+  <p class="text-lg text-foreground/80 leading-relaxed mb-6">{ranking.intro}</p>
+
+  <div class="surface-elevated rounded-lg p-4 mb-8 text-sm text-muted-foreground">
+    <strong class="text-foreground">Methodology:</strong> {ranking.methodology}
+  </div>
+
+  <TableOfContents items={ranking.courses.map(c => ({ id: c.slug, name: c.name }))} />
+
+  <section aria-label="Ranked golf courses">
+    {ranking.courses.map((course, i) => (
+      <CourseCard course={course} rank={i + 1} />
+    ))}
+  </section>
+
+  <FAQSection faqs={ranking.faqs} />
+
+  <InternalLinks
+    title="Related Rankings"
+    links={ranking.relatedRankings.map(r => ({ name: r.name, slug: r.slug, prefix: '/rankings/' }))}
+  />
+
+  <InternalLinks
+    title="Featured Destinations"
+    links={ranking.relatedDestinations.map(d => ({ name: d.name, slug: d.slug, prefix: '/best-golf-courses-in/' }))}
+  />
+
+  <NewsletterCTA />
+</EditorialLayout>

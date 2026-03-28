@@ -1,0 +1,105 @@
+---
+import EditorialLayout from '../../layouts/EditorialLayout.astro';
+import CourseCard from '../../components/content/CourseCard.astro';
+import TableOfContents from '../../components/content/TableOfContents.astro';
+import FAQSection from '../../components/content/FAQSection.astro';
+import InternalLinks from '../../components/content/InternalLinks.astro';
+import NewsletterCTA from '../../components/content/NewsletterCTA.astro';
+import { getCityData, getAllCities } from '../../lib/data';
+import { buildBreadcrumbSchema, buildItemListSchema, buildArticleSchema, buildFAQSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  const cities = getAllCities();
+  return cities.map(c => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const city = getCityData(slug!);
+
+if (!city) {
+  return Astro.redirect('/404');
+}
+
+const publicCourses = [...city.publicCourses, ...city.resortCourses];
+
+const breadcrumbs = [
+  { name: city.state, href: `/golf-in/${city.relatedStates[0] || city.state.toLowerCase().replace(/\s+/g, '-')}` },
+  { name: `${city.city}, ${city.stateAbbr}`, href: `/best-golf-courses-in/${slug}` },
+  { name: 'Public Courses' },
+];
+
+const metaTitle = `Best Public Golf Courses in ${city.city}, ${city.state} (2026)`;
+const metaDescription = `The top public and resort golf courses in ${city.city}, ${city.state}. Courses you can play without a membership, ranked by quality, value, and experience.`;
+
+const jsonLd = [
+  buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: city.state, url: `/golf-in/${city.relatedStates[0] || city.state.toLowerCase().replace(/\s+/g, '-')}` },
+    { name: city.city, url: `/best-golf-courses-in/${slug}` },
+    { name: 'Public Courses', url: `/best-public-golf-courses-in/${slug}` },
+  ]),
+  buildItemListSchema(
+    `Best Public Golf Courses in ${city.city}, ${city.state}`,
+    publicCourses.map((c, i) => ({ name: c.name, position: i + 1, url: `/golf-course/${c.slug}` }))
+  ),
+  buildArticleSchema(metaTitle, metaDescription, `/best-public-golf-courses-in/${slug}`),
+];
+---
+
+<EditorialLayout
+  title={metaTitle}
+  description={metaDescription}
+  canonical={`/best-public-golf-courses-in/${slug}`}
+  ogType="article"
+  jsonLd={jsonLd}
+  breadcrumbs={breadcrumbs}
+>
+  <h1 class="font-display text-3xl md:text-4xl font-bold mb-4">
+    Best Public Golf Courses in {city.city}, {city.state}
+  </h1>
+
+  <p class="text-lg text-foreground/80 leading-relaxed mb-6">
+    You don't need a membership to play great golf in {city.city}. From resort courses to municipal gems,
+    here are the best public and semi-private courses in the area — ranked by design quality, conditioning, and value.
+  </p>
+
+  {publicCourses.length > 0 ? (
+    <>
+      <TableOfContents items={publicCourses.map(c => ({ id: c.slug, name: c.name }))} />
+
+      <section aria-label="Ranked public golf courses">
+        {publicCourses.map((course, i) => (
+          <CourseCard course={course} rank={i + 1} />
+        ))}
+      </section>
+    </>
+  ) : (
+    <p class="text-muted-foreground">Public course listings for {city.city} are coming soon.</p>
+  )}
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Best Time to Play</h2>
+    <p class="text-foreground/80 leading-relaxed">{city.bestTimeToPlay}</p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="font-display text-2xl font-semibold mb-3">Booking Tips</h2>
+    <p class="text-foreground/80 leading-relaxed">
+      For the best rates, book tee times midweek or during shoulder seasons. Many courses offer twilight rates
+      for afternoon rounds. Resort courses often bundle with hotel stays for significant savings.
+    </p>
+    <p class="text-foreground/80 leading-relaxed mt-2">{city.travelTips}</p>
+  </section>
+
+  <InternalLinks
+    title={`See All Courses in ${city.city}`}
+    links={[{ name: `All ${city.city} Golf Courses`, slug: slug!, prefix: '/best-golf-courses-in/' }]}
+  />
+
+  <InternalLinks
+    title="Explore Nearby Destinations"
+    links={city.nearbyDestinations}
+  />
+
+  <NewsletterCTA />
+</EditorialLayout>
