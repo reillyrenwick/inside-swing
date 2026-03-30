@@ -16,6 +16,11 @@ export function buildWebsiteSchema() {
     '@type': 'WebSite',
     name: SITE_NAME,
     url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/best-golf-courses-in/{search_term}`,
+      'query-input': 'required name=search_term',
+    },
   };
 }
 
@@ -62,7 +67,7 @@ export function buildFAQSchema(faqs: { question: string; answer: string }[]) {
   };
 }
 
-export function buildArticleSchema(title: string, description: string, url: string) {
+export function buildArticleSchema(title: string, description: string, url: string, options?: { datePublished?: string; dateModified?: string }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -73,6 +78,8 @@ export function buildArticleSchema(title: string, description: string, url: stri
       '@type': 'Organization',
       name: SITE_NAME,
     },
+    datePublished: options?.datePublished || '2026-01-01',
+    dateModified: options?.dateModified || new Date().toISOString().split('T')[0],
   };
 }
 

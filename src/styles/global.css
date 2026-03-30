@@ -125,4 +125,48 @@
     background: hsl(var(--surface-elevated));
     box-shadow: var(--shadow-card);
   }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-semibold transition-colors;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-primary:hover {
+    background: hsl(152 35% 18%);
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-semibold transition-colors;
+    border: 2px solid hsl(var(--primary));
+    color: hsl(var(--primary));
+    background: transparent;
+  }
+  .btn-secondary:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center rounded-md px-6 py-3 text-sm font-semibold transition-colors;
+    background: hsl(var(--gold));
+    color: hsl(var(--green-deep));
+  }
+  .btn-gold:hover {
+    background: hsl(42 65% 48%);
+  }
+  .card-interactive {
+    @apply rounded-lg transition-all;
+    background: hsl(var(--surface-elevated));
+    box-shadow: var(--shadow-card);
+  }
+  .card-interactive:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    @apply text-3xl font-bold;
+    color: hsl(var(--gold));
+  }
+  .stat-label {
+    @apply text-xs uppercase tracking-wider font-semibold mt-1;
+    color: hsl(var(--primary-foreground) / 0.7);
+  }
 }

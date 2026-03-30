@@ -1,17 +1,42 @@
 ---
 import { SITE_NAME } from '../../lib/config';
+
+const navLinks = [
+  { label: 'Rankings', href: '/rankings' },
+  { label: 'Destinations', href: '/golf-in' },
+  { label: 'City Guides', href: '/best-golf-courses-in' },
+  { label: 'Travel', href: '/golf-travel' },
+  { label: 'Architects', href: '/architects' },
+];
 ---
 
-<header class="border-b border-border bg-surface-elevated sticky top-0 z-50">
+<header class="border-b border-border bg-white sticky top-0 z-50">
   <div class="editorial-container flex items-center justify-between h-16">
     <a href="/" class="font-display text-xl font-bold text-foreground tracking-tight">
       <span class="gold-accent">The Inside</span> Swing
     </a>
-    <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-      <a href="/rankings/best-golf-courses-in-america" class="text-muted-foreground hover:text-foreground transition-colors">Rankings</a>
-      <a href="/golf-in/texas" class="text-muted-foreground hover:text-foreground transition-colors">Destinations</a>
-      <a href="/best-golf-courses-in/scottsdale-arizona" class="text-muted-foreground hover:text-foreground transition-colors">City Guides</a>
-      <a href="/golf-travel/scottsdale-golf-trip" class="text-muted-foreground hover:text-foreground transition-colors">Travel</a>
+
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+      {navLinks.map(link => (
+        <a href={link.href} class="text-muted-foreground hover:text-foreground transition-colors">
+          {link.label}
+        </a>
+      ))}
     </nav>
+
+    <details class="md:hidden relative" id="mobile-menu">
+      <summary class="flex items-center justify-center w-10 h-10 rounded-md hover:bg-muted cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <svg class="w-6 h-6 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </summary>
+      <nav class="absolute right-0 top-12 w-56 bg-white border border-border rounded-lg shadow-lg py-2 z-50">
+        {navLinks.map(link => (
+          <a href={link.href} class="block px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </details>
   </div>
 </header>
