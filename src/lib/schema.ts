@@ -24,7 +24,7 @@ export function buildWebsiteSchema() {
   };
 }
 
-export function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
+export function buildBreadcrumbSchema(items: { name: string; url?: string }[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -32,7 +32,7 @@ export function buildBreadcrumbSchema(items: { name: string; url: string }[]) {
       '@type': 'ListItem',
       position: i + 1,
       name: item.name,
-      item: `${SITE_URL}${item.url}`,
+      ...(item.url ? { item: `${SITE_URL}${item.url}` } : {}),
     })),
   };
 }
